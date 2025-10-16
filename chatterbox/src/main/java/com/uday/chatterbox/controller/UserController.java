@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uday.chatterbox.dta.LoginRequest;
 import com.uday.chatterbox.model.User;
-import com.uday.chatterbox.repositoory.UserRepo;
+import com.uday.chatterbox.repository.UserRepo;
 import com.uday.chatterbox.util.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -63,7 +63,7 @@ public class UserController {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getId());
 
         return ResponseEntity.ok(Map.of("message", "Login successful", "user", user, "token", token));
     }

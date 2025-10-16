@@ -1,4 +1,4 @@
-package com.uday.chatterbox.repositoory;
+package com.uday.chatterbox.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
