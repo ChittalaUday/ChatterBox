@@ -2,7 +2,6 @@ package com.uday.chatterbox.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.Builder.Default;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -1,8 +1,5 @@
 package com.uday.chatterbox.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +48,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtil.validateToken(jwt)) {
                 String role = jwtUtil.extractUserRole(jwt);
-                
+
                 // Create authorities list
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 if (role != null && !role.isEmpty()) {
