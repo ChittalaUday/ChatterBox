@@ -9,6 +9,7 @@ import com.uday.chatterbox.util.JwtUtil;
 
 import jakarta.validation.Valid;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -16,10 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 public class UserController {
@@ -86,6 +89,91 @@ public class UserController {
 
         return ResponseEntity.ok(user);
     }
-    
+
+    @PutMapping("/users")
+    public ResponseEntity<?> updateUser(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody Map<String, Object> updates) {
+
+        // 1️⃣ Extract token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+        // 2️⃣ Extract email (username) from token
+        String email = jwtUtil.extractUsername(token);
+
+        // 3️⃣ Find the user
+        User existingUser = userRepo.findByEmail(email);
+        if (existingUser == null) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        // 4️⃣ Prevent sensitive updates
+        updates.remove("id");
+        updates.remove("email");
+        updates.remove("password");
+        updates.remove("role");
+
+        // 5️⃣ Apply updates dynamically
+        updates.forEach((key, value) -> {
+            try {
+                java.lang.reflect.Field field = User.class.getDeclaredField(key);
+                field.setAccessible(true);
+                field.set(existingUser, value);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                // Ignore invalid fields
+            }
+        });
+
+        // 6️⃣ Save updated user
+        User updatedUser = userRepo.save(existingUser);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "User updated successfully",
+                "user", updatedUser));
+    }
+
+    @PatchMapping("/users/me")
+    public ResponseEntity<?> patchUser(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody Map<String, Object> updates) {
+        // 1️⃣ Extract token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+        // 2️⃣ Extract email (username) from token
+        String email = jwtUtil.extractUsername(token);
+
+        // 3️⃣ Find the user
+        User existingUser = userRepo.findByEmail(email);
+        if (existingUser == null) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        // 4️⃣ Prevent sensitive updates
+        updates.remove("id");
+        updates.remove("email");
+        updates.remove("password");
+        updates.remove("role");
+
+        // 5️⃣ Apply updates dynamically
+        updates.forEach((key, value) -> {
+            try {
+                java.lang.reflect.Field field = User.class.getDeclaredField(key);
+                field.setAccessible(true);
+                field.set(existingUser, value);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                // Ignore invalid fields
+            }
+        });
+
+        // 6️⃣ Save updated user
+        User updatedUser = userRepo.save(existingUser);
+
+        updatedUser.setPassword(null);
+        updatedUser.setRole(null);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "User updated successfully",
+                "user", updatedUser));
+    }
 
 }
